@@ -1,0 +1,130 @@
+[1mdiff --git a/5.py b/5.py[m
+[1mindex 9d69e02..9e9f5a2 100644[m
+[1m--- a/5.py[m
+[1m+++ b/5.py[m
+[36m@@ -1,11 +1,11 @@[m
+ import requests[m
+ from lxml import etree[m
+ [m
+[31m-url = "https://www.xin.com/40d0nv9ky9/che68276154.html?channel=a49b117c44837d110753e751863f53"[m
+[32m+[m[32murl = "http://www.xin.com/x5dn253d1z/che69464062.html"[m
+ r = requests.get(url)[m
+ html = etree.HTML(r.text)[m
+[31m-itm = html.xpath('/html/body/div[2]/div[14]/div/div[4]/div[4]/dl[1]/dd[1]/span[2]/text()')[m
+[31m-f = open("bmwwww.html","w",encoding="utf-8")[m
+[31m-f.write(r.text)[m
+[31m-f.close()[m
+[32m+[m[32mitm = html.xpath('/html/body/div[2]/div[2]/div[2]/ul/li[1]/span[1]/text()')[m
+[32m+[m[32m# f = open("bmwwww.html","w",encoding="utf-8")[m
+[32m+[m[32m# f.write(r.text)[m
+[32m+[m[32m# f.close()[m
+ print(itm)[m
+[1mdiff --git a/__pycache__/master.cpython-36.pyc b/__pycache__/master.cpython-36.pyc[m
+[1mindex dcb89e2..0e0b850 100644[m
+Binary files a/__pycache__/master.cpython-36.pyc and b/__pycache__/master.cpython-36.pyc differ
+[1mdiff --git a/__pycache__/mongo_or.cpython-36.pyc b/__pycache__/mongo_or.cpython-36.pyc[m
+[1mindex d551352..508dc5c 100644[m
+Binary files a/__pycache__/mongo_or.cpython-36.pyc and b/__pycache__/mongo_or.cpython-36.pyc differ
+[1mdiff --git a/master.py b/master.py[m
+[1mindex 602f983..7845a28 100644[m
+[1m--- a/master.py[m
+[1m+++ b/master.py[m
+[36m@@ -82,11 +82,8 @@[m [mclass Master_Spider():[m
+         B = redis_or.Redis_Data()[m
+         if url_list:[m
+             for i in url_list:[m
+[31m-                # pattern = re.compile(r'%s/(.*?)/$'%self.city)[m
+[31m-                # key_name = re.findall(pattern,i)[m
+[31m-                # print(key_name)[m
+                 try:[m
+[31m-                    B.set_into_data("shenzhen_youxin",i)[m
+[32m+[m[32m                    B.set_into_data("shenzhen_aodi","http://"+i)[m
+                 except:[m
+                     print("进Redis数据库异常",i)[m
+                     continue[m
+[36m@@ -96,7 +93,8 @@[m [mclass Master_Spider():[m
+ [m
+     def loop_page(self,brand_url):[m
+         detail_urls = [][m
+[31m-        for i in range(200):[m
+[32m+[m[32m        for i in range(1):[m
+[32m+[m[32m        # for i in range(200):[m
+             url = brand_url+r'i{page}/'.format(page=i)[m
+             html = self.get_html(url)[m
+             urls = self.get_detail_url(html)[m
+[36m@@ -120,14 +118,11 @@[m [mdef main():[m
+     A = Master_Spider("shenzhen")[m
+     brand_urls = A.get_brand_urls()[m
+     print(brand_urls)[m
+[31m-    print()[m
+[31m-    # for i in brand_urls:[m
+[31m-    #     details = A.loop_page(i)[m
+[31m-    #     print(details)[m
+[31m-    #     print(len(details))[m
+[31m-    #     A.urls_into_redis(details)[m
+[31m-[m
+[31m-[m
+[32m+[m[32m    for i in brand_urls[:1]:[m
+[32m+[m[32m        details = A.loop_page(i)[m
+[32m+[m[32m        print(details)[m
+[32m+[m[32m        print(len(details))[m
+[32m+[m[32m        A.urls_into_redis(details)[m
+ if __name__ == '__main__':[m
+     main()[m
+ [m
+[1mdiff --git a/slave.py b/slave.py[m
+[1mindex 302a246..67a8dd6 100644[m
+[1m--- a/slave.py[m
+[1m+++ b/slave.py[m
+[36m@@ -1,20 +1,20 @@[m
+ import requests[m
+ from lxml import etree[m
+ import mongo_or[m
+[32m+[m[32mimport redis_or[m
+ import master[m
+[32m+[m[32mimport re[m
+ class Slave_Spisder():[m
+     def parse_detail_data(self,html):[m
+         data=dict()[m
+         model_name = html.xpath('//div[@class="cd_m_info cd_m_info_zjf"]/div[2]/div[1]/span/text()')[0].strip()[m
+         data["车型名字"] = model_name[m
+[31m-        car_age =html.xpath('//ul[@class="cd_m_info_desc"]/li[1]/span/text()')[m
+[31m-        data["车龄"] = car_age[m
+         car_mileage = html.xpath('//ul[@class="cd_m_info_desc"]/li[2]/a/text()')[0].strip()[m
+[31m-        data["排量"] = car_mileage[m
+[32m+[m[32m        data["里程"] = car_mileage[m
+         emission_stand = html.xpath('//ul[@class="cd_m_info_desc"]/li[3]/span[1]/text()')[m
+         data["排放标准"] = emission_stand[m
+         displa = html.xpath('//ul[@class="cd_m_info_desc"]/li[4]/span[1]/text()')[m
+[31m-        data["里程"] =  displa[m
+[32m+[m[32m        data["排量"] =  displa[m
+         raw_price = html.xpath('//p[@class="cd_m_info_price"]/span[2]/span/span/span/b/text()')[m
+         getcar_time = html.xpath('//ul[@class="cd_m_info_desc"]/li[5]/span[1]/text()')[m
+         data["车龄"] = getcar_time[m
+[36m@@ -42,8 +42,9 @@[m [mclass Slave_Spisder():[m
+         data["驱动形式"] = drive_mode[m
+         fuel_consum = html.xpath('//div[@class="cd_m_i_pz"]/dl[3]/dd[6]/span[2]/text()')[m
+         data["油耗"] = fuel_consum[m
+[31m-        items = html.xpath('/html/body/div[2]/div[13]/div/div[4]/div[1]/dl[1]/dd[1]/span[2]')[m
+[31m-        print(items)[m
+[32m+[m[32m        car_year = html.xpath('//ul[@class="cd_m_info_desc"]/li[1]/span[1]/text()')[m
+[32m+[m[32m        data["年份"] = car_year[m
+[32m+[m[32m        return data[m
+     def get_pro_data(self,html):[m
+         pass[m
+ [m
+[36m@@ -54,7 +55,13 @@[m [mclass Slave_Spisder():[m
+ [m
+ [m
+ if __name__ == '__main__':[m
+[31m-    pass[m
+[32m+[m[32m    B = redis_or.Redis_Data()[m
+[32m+[m[32m    A = master.Master_Spider("shenzhen")[m
+[32m+[m[32m    url = B.pop_data("shenzhen_aodi")[m
+[32m+[m[32m    print(url)[m
+[32m+[m[32m    html = A.get_html(url)[m
+[32m+[m[32m    C=Slave_Spisder()[m
+[32m+[m[32m    C.parse_detail_data(html)[m
+ [m
+ [m
+ [m
